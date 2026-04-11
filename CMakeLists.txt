@@ -39,10 +39,46 @@ if (NOT TARGET hello_imgui)
     FetchContent_MakeAvailable(hello_imgui)
 endif()
 
+# Override hello_imgui's buggy hello_imgui_bundle_assets_from_folder function
+# to properly escape @ symbols in paths
+if(CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
+    function(hello_imgui_bundle_assets_from_folder app_name assets_folder)
+        if (IS_DIRECTORY ${assets_folder})
+            # Escape @ symbols in the path for emscripten file_packager (@ is used as src@dst separator)
+            string(REPLACE "@" "@@" assets_folder_escaped "${assets_folder}")
+            target_link_options(
+                ${app_name}
+                PRIVATE
+                "SHELL:--preload-file ${assets_folder_escaped}@/"
+            )
+        else()
+            message(WARNING "hello_imgui_bundle_assets_from_folder: ignoring missing folder ${assets_folder}")
+        endif()
+
+        if (HELLOIMGUI_ADD_APP_WITH_INSTALL)
+            hello_imgui_get_real_output_directory(${app_name} real_output_directory)
+            install(FILES
+                ${real_output_directory}/${app_name}.html
+                ${real_output_directory}/${app_name}.data
+                ${real_output_directory}/${app_name}.js
+                ${real_output_directory}/${app_name}.wasm
+                DESTINATION .
+            )
+        endif()
+    endfunction()
+endif()
+
 option(EXAMPLE_INTEGRATION_PORTABLE_INSTALL "Install in a portable way" ON)
 
 # Create the app target (hello_imgui_add_app defines the target hello_world_)
 hello_imgui_add_app(hello_world_ hello_world.main.cpp)
+
+if(WIN32)
+  target_link_options(hello_world_ PRIVATE
+    -static-libgcc
+    -static-libstdc++
+  )
+endif()
 
 # Link GLFW (guard and prefer imported target names)
 if(USE_EMSCRIPTEN_GLFW_PORT)

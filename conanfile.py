@@ -19,7 +19,6 @@ class HelloImGuiTemplateConan(ConanFile):
         # default: require glfw unless if its emscripten which has its
         # glfw provided by the emsdk installation process.
         # if not os.getenv("WEBBUILD"):
-        # self.requires("glfw/3.4")
         #
         if str(self.settings.get_safe("os")) != "Emscripten":
             self.requires("glfw/3.4")
