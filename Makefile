@@ -10,12 +10,14 @@ conan_wasm:
 	conan install . --profile:build=default --profile:host=conan-profiles/emscripten.profile --build=missing
 
 wasm: 
+	@echo "\e[0;34mConan environment setup: installing dependencies \e[0m"
+	$(MAKE) conan_wasm
+	@echo "\e[0;34mGenerating CMake dependencies/toolchain\e[0m"
 	$(MAKE) configure_wasm
+	@echo "\e[0;34mBuilding WASM"
 	$(MAKE)	build_wasm
 
 configure_wasm:
-	type cmake
-	which cmake
 	# Prevent any emscripten conflicts
 	$(SHELL) -c "cmake --preset=conan-release"
 
