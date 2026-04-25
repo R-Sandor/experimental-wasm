@@ -1,0 +1,25 @@
+{
+  "name": "Hello ImGui WASM Extension",
+  "description": "Chrome extension with Hello ImGui running in WASM",
+  "version": "1.0",
+  "manifest_version": 3,
+  "action": {
+    "default_popup": "imgui_popup.html"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "hello.js",
+        "hello.wasm",
+        "imgui_loader.js",
+        "hello_world_.js",
+        "hello_world_.wasm",
+        "hello_world_.data"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+  }
+}
