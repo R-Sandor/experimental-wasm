@@ -26,46 +26,46 @@ endif()
 # Build hello_imgui
 # =================
 if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/external/hello_imgui)
-    add_subdirectory(external/hello_imgui EXCLUDE_FROM_ALL)
+  add_subdirectory(external/hello_imgui EXCLUDE_FROM_ALL)
 endif()
 
 if (NOT TARGET hello_imgui)
-    message(STATUS "Fetching hello_imgui")
-    include(FetchContent)
-    FetchContent_Declare(hello_imgui
+  message(STATUS "Fetching hello_imgui")
+  include(FetchContent)
+  FetchContent_Declare(hello_imgui
         GIT_REPOSITORY https://github.com/pthom/hello_imgui.git
         GIT_TAG master
         EXCLUDE_FROM_ALL)
-    FetchContent_MakeAvailable(hello_imgui)
+  FetchContent_MakeAvailable(hello_imgui)
 endif()
 
 # Override hello_imgui's buggy hello_imgui_bundle_assets_from_folder function
 # to properly escape @ symbols in paths
 if(CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
-    function(hello_imgui_bundle_assets_from_folder app_name assets_folder)
-        if (IS_DIRECTORY ${assets_folder})
-            # Escape @ symbols in the path for emscripten file_packager (@ is used as src@dst separator)
-            string(REPLACE "@" "@@" assets_folder_escaped "${assets_folder}")
-            target_link_options(
+  function(hello_imgui_bundle_assets_from_folder app_name assets_folder)
+    if (IS_DIRECTORY ${assets_folder})
+      # Escape @ symbols in the path for emscripten file_packager (@ is used as src@dst separator)
+      string(REPLACE "@" "@@" assets_folder_escaped "${assets_folder}")
+      target_link_options(
                 ${app_name}
                 PRIVATE
                 "SHELL:--preload-file ${assets_folder_escaped}@/"
             )
-        else()
-            message(WARNING "hello_imgui_bundle_assets_from_folder: ignoring missing folder ${assets_folder}")
-        endif()
+    else()
+      message(WARNING "hello_imgui_bundle_assets_from_folder: ignoring missing folder ${assets_folder}")
+    endif()
 
-        if (HELLOIMGUI_ADD_APP_WITH_INSTALL)
-            hello_imgui_get_real_output_directory(${app_name} real_output_directory)
-            install(FILES
+    if (HELLOIMGUI_ADD_APP_WITH_INSTALL)
+      hello_imgui_get_real_output_directory(${app_name} real_output_directory)
+      install(FILES
                 ${real_output_directory}/${app_name}.html
                 ${real_output_directory}/${app_name}.data
                 ${real_output_directory}/${app_name}.js
                 ${real_output_directory}/${app_name}.wasm
                 DESTINATION .
             )
-        endif()
-    endfunction()
+    endif()
+  endfunction()
 endif()
 
 option(EXAMPLE_INTEGRATION_PORTABLE_INSTALL "Install in a portable way" ON)
@@ -100,16 +100,45 @@ else()
 endif()
 
 if (NOT EXAMPLE_INTEGRATION_PORTABLE_INSTALL)
-    set(HELLOIMGUI_ADD_APP_WITH_INSTALL OFF CACHE BOOL "" FORCE)
+  set(HELLOIMGUI_ADD_APP_WITH_INSTALL OFF CACHE BOOL "" FORCE)
 
-    include(GNUInstallDirs)
-    install(TARGETS hello_world_ DESTINATION ${CMAKE_INSTALL_BINDIR})
-    set(assets_install_dir ${CMAKE_INSTALL_DATADIR}/hello_world_)
-    install(DIRECTORY assets DESTINATION ${assets_install_dir})
+  include(GNUInstallDirs)
+  install(TARGETS hello_world_ DESTINATION ${CMAKE_INSTALL_BINDIR})
+  set(assets_install_dir ${CMAKE_INSTALL_DATADIR}/hello_world_)
+  install(DIRECTORY assets DESTINATION ${assets_install_dir})
 
-    file(RELATIVE_PATH assets_relative_to_bin
+  file(RELATIVE_PATH assets_relative_to_bin
             "/${CMAKE_INSTALL_BINDIR}"
             "/${assets_install_dir}/assets")
-    target_compile_definitions(hello_world_ PRIVATE ASSETS_LOCATION="${assets_relative_to_bin}")
+  target_compile_definitions(hello_world_ PRIVATE ASSETS_LOCATION="${assets_relative_to_bin}")
+endif()
+
+# Chrome Extension WASM target
+# ============================
+if(CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
+  add_executable(chrome_extension extension/hello.cpp)
+  set_target_properties(chrome_extension PROPERTIES
+        CXX_STANDARD 17
+        CXX_STANDARD_REQUIRED ON
+    )
+
+  target_link_options(chrome_extension PRIVATE
+        "SHELL:-lembind"
+        "SHELL:-s WASM=1"
+        "SHELL:-s MODULARIZE=1"
+        "SHELL:-s EXPORT_ES6=1"
+        "SHELL:-s EXPORT_NAME='createHelloModule'"
+        "SHELL:-s ENVIRONMENT='web'"
+        "SHELL:-s SINGLE_FILE=0"
+        "SHELL:-s DYNAMIC_EXECUTION=0"
+        "SHELL:--bind"
+    )
+
+  set_target_properties(chrome_extension PROPERTIES
+        OUTPUT_NAME "hello"
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/extension"
+    )
+
+  message(STATUS "Chrome extension target configured - will output to extension/hello.js and extension/hello.wasm")
 endif()
 
