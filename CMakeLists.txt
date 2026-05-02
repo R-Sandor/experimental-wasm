@@ -116,7 +116,7 @@ endif()
 # Chrome Extension WASM target
 # ============================
 if(CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
-  add_executable(chrome_extension extension/hello.cpp)
+  add_executable(chrome_extension extension/simple_hello_world/hello.cpp)
   set_target_properties(chrome_extension PROPERTIES
         CXX_STANDARD 17
         CXX_STANDARD_REQUIRED ON

@@ -11,11 +11,10 @@ class HelloImGuiTemplateConan(ConanFile):
     generators = "CMakeDeps", "CMakeToolchain"
     exports_sources = "*"
 
-    def generate(self):
+    def source(self):
         """Automatically setup conan-toolchains and emsdk recipe for new users"""
+        toolchains_dir = os.path.join(self.recipe_folder, "conan-toolchains")
         # Only needed for Emscripten builds
-        if str(self.settings.get_safe("os")) != "Emscripten":
-            return
 
         toolchains_dir = os.path.join(self.recipe_folder, "conan-toolchains")
 
@@ -26,22 +25,26 @@ class HelloImGuiTemplateConan(ConanFile):
             git.clone(
                 url="https://github.com/conan-io/conan-toolchains.git",
                 target=toolchains_dir,
-                args=["--depth", "1"]
+                args=["--depth", "1"],
             )
 
         # Add remote if not already added
         try:
             result = subprocess.run(
-                ["conan", "remote", "list"],
-                capture_output=True,
-                text=True,
-                check=True
+                ["conan", "remote", "list"], capture_output=True, text=True, check=True
             )
             if "conan-toolchains" not in result.stdout:
                 self.output.info("Adding conan-toolchains remote...")
                 subprocess.run(
-                    ["conan", "remote", "add", "conan-toolchains", toolchains_dir, "--force"],
-                    check=True
+                    [
+                        "conan",
+                        "remote",
+                        "add",
+                        "conan-toolchains",
+                        toolchains_dir,
+                        "--force",
+                    ],
+                    check=True,
                 )
         except subprocess.CalledProcessError:
             self.output.warning("Could not add conan-toolchains remote")
@@ -49,17 +52,21 @@ class HelloImGuiTemplateConan(ConanFile):
         # Check if emsdk recipe is exported, if not export it
         try:
             result = subprocess.run(
-                ["conan", "list", "emsdk/5.0.3"],
-                capture_output=True,
-                text=True
+                ["conan", "list", "emsdk/5.0.3"], capture_output=True, text=True
             )
             if "emsdk/5.0.3" not in result.stdout:
                 self.output.info("Exporting emsdk recipe...")
                 emsdk_recipe = os.path.join(toolchains_dir, "recipes", "emsdk", "all")
                 subprocess.run(
-                    ["conan", "export", emsdk_recipe, "--version=5.0.3", "--name=emsdk"],
+                    [
+                        "conan",
+                        "export",
+                        emsdk_recipe,
+                        "--version=5.0.3",
+                        "--name=emsdk",
+                    ],
                     check=True,
-                    cwd=emsdk_recipe
+                    cwd=emsdk_recipe,
                 )
         except subprocess.CalledProcessError:
             self.output.warning("Could not check/export emsdk recipe")
