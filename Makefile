@@ -22,7 +22,8 @@ check_tools:
 
 conan_default:
 	$(MAKE) check_tools
-	conan install . --profile:build=default --build=missing
+	@conan profile detect -e 
+	@conan install . --profile:build=default --build=missing 
 	$(MAKE) configure_deps
 	$(MAKE) build_app
 

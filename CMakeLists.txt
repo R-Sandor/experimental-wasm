@@ -56,7 +56,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
       message(WARNING "hello_imgui_bundle_assets_from_folder: ignoring missing folder ${assets_folder}")
     endif()
 
-    if (HELLOIMGUI_ADD_APP_WITH_INSTALL)
+    if(HELLOIMGUI_ADD_APP_WITH_INSTALL)
       hello_imgui_get_real_output_directory(${app_name} real_output_directory)
       install(FILES
                 ${real_output_directory}/${app_name}.html
@@ -71,11 +71,11 @@ endif()
 
 option(EXAMPLE_INTEGRATION_PORTABLE_INSTALL "Install in a portable way" ON)
 
-# Create the app target (hello_imgui_add_app defines the target hello_world_)
-hello_imgui_add_app(hello_world_ hello_world.main.cpp)
+# Create the app target (hello_imgui_add_app defines the target FindFirstApp)
+hello_imgui_add_app(FindFirstApp hello_world.main.cpp)
 
 if(WIN32)
-  target_link_options(hello_world_ PRIVATE
+  target_link_options(FindFirstApp PRIVATE
     -static-libgcc
     -static-libstdc++
   )
@@ -84,34 +84,45 @@ endif()
 # Link GLFW (guard and prefer imported target names)
 if(USE_EMSCRIPTEN_GLFW_PORT)
   # The Emscripten port supplies symbols at link time; no find_package needed.
-  # Nothing to link here beyond normal linker flags already added to CMAKE_EXE_LINKER_FLAGS.
-  message(STATUS "Using Emscripten contrib.glfw3 port; skipping find_package(glfw)")
+  # Nothing to link here beyond normal linker flags
+  # already added to CMAKE_EXE_LINKER_FLAGS.
+  message(
+    STATUS "Using Emscripten contrib.glfw3 port;
+    skipping find_package(glfw)"
+  )
 else()
   # Prefer modern imported target first
-  find_package(glfw3 REQUIRED CONFIG) # CMakeDeps will generate a config file when using Conan
+  # CMakeDeps will generate a config file when using Conan
+  find_package(glfw3 REQUIRED CONFIG)
   if(TARGET glfw::glfw)
-    target_link_libraries(hello_world_ PRIVATE glfw::glfw)
+    target_link_libraries(FindFirstApp PRIVATE glfw::glfw)
   elseif(TARGET glfw)
-    target_link_libraries(hello_world_ PRIVATE glfw)
+    target_link_libraries(FindFirstApp PRIVATE glfw)
   else()
     # best-effort: try pkg-config / fallback
-    message(WARNING "GLFW target not found. Ensure CMakeDeps generated the config and CMAKE_PREFIX_PATH includes Conan generators.")
-    target_link_libraries(hello_world_ PRIVATE glfw) # keep attempt; will error if not found
+    message(
+      WARNING
+      "GLFW target not found. Ensure CMakeDeps generated the config
+      and CMAKE_PREFIX_PATH includes Conan generators.")
+    # keep attempt; will error if not found
+    target_link_libraries(FindFirstApp PRIVATE glfw)
   endif()
 endif()
 
-if (NOT EXAMPLE_INTEGRATION_PORTABLE_INSTALL)
+if(NOT EXAMPLE_INTEGRATION_PORTABLE_INSTALL)
   set(HELLOIMGUI_ADD_APP_WITH_INSTALL OFF CACHE BOOL "" FORCE)
 
   include(GNUInstallDirs)
-  install(TARGETS hello_world_ DESTINATION ${CMAKE_INSTALL_BINDIR})
-  set(assets_install_dir ${CMAKE_INSTALL_DATADIR}/hello_world_)
+  install(TARGETS FindFirstApp DESTINATION ${CMAKE_INSTALL_BINDIR})
+  set(assets_install_dir ${CMAKE_INSTALL_DATADIR}/FindFirstApp)
   install(DIRECTORY assets DESTINATION ${assets_install_dir})
 
   file(RELATIVE_PATH assets_relative_to_bin
             "/${CMAKE_INSTALL_BINDIR}"
             "/${assets_install_dir}/assets")
-  target_compile_definitions(hello_world_ PRIVATE ASSETS_LOCATION="${assets_relative_to_bin}")
+  target_compile_definitions(
+    FindFirstApp
+    PRIVATE ASSETS_LOCATION="${assets_relative_to_bin}")
 endif()
 
 # Chrome Extension WASM target
@@ -121,7 +132,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
   set_target_properties(chrome_extension PROPERTIES
         CXX_STANDARD 17
         CXX_STANDARD_REQUIRED ON
-    )
+  )
 
   target_link_options(chrome_extension PRIVATE
         "SHELL:-lembind"
@@ -138,8 +149,18 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
   set_target_properties(chrome_extension PROPERTIES
         OUTPUT_NAME "hello"
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/extension"
-    )
+  )
 
-  message(STATUS "Chrome extension target configured - will output to extension/hello.js and extension/hello.wasm")
+  message(
+    STATUS
+    "Chrome extension target configured -
+    will output to extension/hello.js and extension/hello.wasm"
+  )
+else()
+  set_target_properties(
+    FindFirstApp PROPERTIES
+    OUTPUT_NAME "FindFirstApp"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}"
+  )
 endif()
 
