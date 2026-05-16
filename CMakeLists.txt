@@ -72,7 +72,7 @@ endif()
 option(EXAMPLE_INTEGRATION_PORTABLE_INSTALL "Install in a portable way" ON)
 
 # Create the app target (hello_imgui_add_app defines the target FindFirstApp)
-hello_imgui_add_app(FindFirstApp hello_world.main.cpp)
+hello_imgui_add_app(FindFirstApp src/main.cpp)
 
 if(WIN32)
   target_link_options(FindFirstApp PRIVATE
@@ -144,7 +144,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
         "SHELL:-s SINGLE_FILE=0"
         "SHELL:-s DYNAMIC_EXECUTION=0"
         "SHELL:--bind"
-    )
+  )
 
   set_target_properties(chrome_extension PROPERTIES
         OUTPUT_NAME "hello"

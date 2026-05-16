@@ -9,14 +9,15 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "hello.js",
         "hello.wasm",
+        "hello.js",
+        "imgui_popup.html",
         "imgui_loader.js",
-        "hello_world_.js",
-        "hello_world_.wasm",
-        "hello_world_.data"
+        "popup.js"
       ],
-      "matches": ["<all_urls>"]
+      "matches": [
+        "<all_urls>"
+      ]
     }
   ],
   "content_security_policy": {
