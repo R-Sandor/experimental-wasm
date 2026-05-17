@@ -70,6 +70,6 @@ window.onerror = function(event) {
 
 // Load the Emscripten-generated JavaScript
 var script = document.createElement('script');
-script.src = chrome.runtime.getURL('hello_world_.js');
+script.src = chrome.runtime.getURL('FindFirstApp.js');
 script.async = true;
 document.body.appendChild(script);

@@ -9,8 +9,8 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "hello.wasm",
-        "hello.js",
+        "FindFirstApp.wasm",
+        "FindFirstApp.js",
         "imgui_popup.html",
         "imgui_loader.js",
         "popup.js"
