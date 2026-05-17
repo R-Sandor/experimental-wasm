@@ -3,6 +3,8 @@ cmake-build-*/
 external/
 conan-toolchains/
 extension/hello.js
+extension/FindFirstApp.js
+extension/FindFirstApp.data
 compile-comands.json
 FindFirstApp
 *.ini
